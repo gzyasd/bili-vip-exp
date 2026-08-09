@@ -1,0 +1,32 @@
+name: B站每日大会员经验领取
+
+# 触发方式：
+#  1) 定时触发：cron 使用 UTC 时间。北京时间 08:00 = UTC 00:00
+#  2) 手动触发：在仓库 Actions 页面点 "Run workflow"
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  claim:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 配置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: 运行领取脚本
+        env:
+          SESSDATA: ${{ secrets.SESSDATA }}
+          BILI_JCT: ${{ secrets.BILI_JCT }}
+          NOTIFY_TYPE: ${{ secrets.NOTIFY_TYPE }}
+          DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          NOTIFY_ON_SUCCESS: ${{ secrets.NOTIFY_ON_SUCCESS }}
+        run: python bili_vip_exp.py

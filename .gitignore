@@ -1,0 +1,6 @@
+# B站 cookie 配置（含敏感信息，禁止提交到仓库）
+config.json
+
+# Python 缓存
+__pycache__/
+*.pyc
