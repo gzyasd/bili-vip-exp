@@ -164,7 +164,8 @@ def notify(title, content):
             token = os.environ.get("DINGTALK_WEBHOOK", "").strip()
             if not token:
                 print("[通知] 未配置 DINGTALK_WEBHOOK"); return
-            url = "https://oapi.dingtalk.com/robot/send?access_token=" + token
+            # DINGTALK_WEBHOOK 存的是完整 webhook 地址（含 access_token=），直接使用
+            url = token
             # 钉钉机器人设置了自定义关键词「GZY」，消息里必须包含该词才会放行
             resp = _http_post_json(url, {"msgtype": "text", "text": {"content": "【GZY】" + title + "\n" + content}},
                                    {"User-Agent": USER_AGENT})
