@@ -166,9 +166,17 @@ def notify(title, content):
                 print("[通知] 未配置 DINGTALK_WEBHOOK"); return
             url = "https://oapi.dingtalk.com/robot/send?access_token=" + token
             # 钉钉机器人设置了自定义关键词「GZY」，消息里必须包含该词才会放行
-            _http_post_json(url, {"msgtype": "text", "text": {"content": "【GZY】" + title + "\n" + content}},
-                            {"User-Agent": USER_AGENT})
-            print("[通知] 已通过钉钉机器人推送")
+            resp = _http_post_json(url, {"msgtype": "text", "text": {"content": "【GZY】" + title + "\n" + content}},
+                                   {"User-Agent": USER_AGENT})
+            # 检查钉钉返回的 errcode，避免 HTTP 200 但业务失败时误报成功
+            try:
+                rj = json.loads(resp)
+                if rj.get("errcode") == 0:
+                    print("[通知] 已通过钉钉机器人推送")
+                else:
+                    print(f"[通知][警告] 钉钉推送失败：errcode={rj.get('errcode')} errmsg={rj.get('errmsg')}")
+            except Exception:
+                print(f"[通知][警告] 钉钉返回内容无法解析：{resp}")
 
         elif ntype == "pushplus":
             token = os.environ.get("PUSHPLUS_TOKEN", "").strip()
