@@ -22,6 +22,9 @@ jobs:
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
+        with:
+          # 必须禁用：否则 checkout 持久化的 GITHUB_TOKEN 会覆盖 PAT 推送身份（被识别成 github-actions[bot] 而 403）
+          persist-credentials: false
 
       - name: 提交保活时间戳（必须用 PAT，默认 GITHUB_TOKEN 的提交不算活动）
         env:
