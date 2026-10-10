@@ -1,0 +1,35 @@
+name: 仓库保活
+
+# 目的：GitHub 会在仓库连续 60 天无活动时自动禁用定时（scheduled）workflow，
+# 定时任务自身的运行、以及用默认 GITHUB_TOKEN 的提交都不算"活动"。
+# 本 workflow 每月 1 号用 PAT 提交一次时间戳，让仓库保持活跃，避免被自动禁用。
+#
+# 前置配置：仓库 Secret 中需存在 KEEPALIVE_PAT（对该仓库有推送权限的个人访问令牌）
+#
+# 触发方式：
+#  1) 定时触发：cron 使用 UTC 时间。每月 1 号 11:00（北京时间）= UTC 1 号 03:00
+#  2) 手动触发：在仓库 Actions 页面点 "Run workflow"
+on:
+  schedule:
+    - cron: "0 3 1 * *"
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 提交保活时间戳（必须用 PAT，默认 GITHUB_TOKEN 的提交不算活动）
+        env:
+          KEEPALIVE_PAT: ${{ secrets.KEEPALIVE_PAT }}
+        run: |
+          git config user.name "${{ github.repository_owner }}"
+          git config user.email "${{ github.repository_owner }}@users.noreply.github.com"
+          date -u > .keepalive
+          git add .keepalive
+          git commit -m "chore: keepalive $(date -u +%F)"
+          git push "https://x-access-token:${KEEPALIVE_PAT}@github.com/${{ github.repository }}.git" "HEAD:${{ github.ref_name }}"
